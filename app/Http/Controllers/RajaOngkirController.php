@@ -26,4 +26,28 @@ class RajaOngkirController extends Controller
 
         return view('rajaongkir', compact('provinces'));
     }
+
+    // mengambil data kota berdasarkan provinsi 
+    public function getCities($provinceId){
+        $response = Http::withHeaders([
+            'Accept' => 'application/json',
+            'key' => config('rajaongkir.api_key'),
+        ])->get("https://rajaongkir.komerce.id/api/v1/destination/city/{$provinceId}");
+
+        if($response->successful()){
+            return response()->json($response->json()['data'] ?? []);
+        }
+    }
+
+    // mengambil data kecamatan berdasarkan kota
+    public function getDistricts($cityId){
+        $response = Http::withHeaders([
+            'Accept' => 'application/json',
+            'key' => config('rajaongkir.api_key'),
+        ])->get("https://rajaongkir.komerce.id/api/v1/destination/district/{$cityId}");
+
+        if($response->successful()){
+            return response()->json($response->json()['data'] ?? []);
+        }
+    }
 }

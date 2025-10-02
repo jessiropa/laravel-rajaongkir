@@ -12,7 +12,14 @@ use Illuminate\Support\Facades\Route;
 | be assigned to the "web" middleware group. Make something great!
 |
 */
+// index route dari controller raja ongkir
 Route::get('/', [App\Http\Controllers\RajaOngkirController::class, 'index']);
+
+// get data kota berdasarkan id provinsi 
+Route::get('/cities/{provinceId}',[App\Http\Controllers\RajaOngkirController::class, 'getCities']);
+
+// get data kecamatan berdasarkan id kota
+Route::get('/districts/{cityId}', [App\Http\Controllers\RajaOngkirController::class, 'getDistricts']);
 // Route::get('/', function () {
 //     return view('welcome');
 // });

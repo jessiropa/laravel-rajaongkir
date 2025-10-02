@@ -50,4 +50,23 @@ class RajaOngkirController extends Controller
             return response()->json($response->json()['data'] ?? []);
         }
     }
+
+    // check ongkir 
+    public function checkongkir(Request $request){
+        $response = Http::withHeaders([
+            'Accept' => 'application/json',
+            'key' => config('rajaongkir.api_key'),
+        ])->post('https://rajaongkir.komerce.id/api/v1/calculate/district/domestic-cost', [
+            'origin'      => 5895, // ID kecamatan sukolilo
+            'destination' => $request->input('district_id'), // ID kecamatan tujuan
+            'weight'      => $request->input('weight'), // Berat dalam gram
+            'courier'     => $request->input('courier'), // Kode kurir (jne, tiki, pos)
+        ]);
+
+        if($response->successful()){
+            return response()->json($response->json()['data'] ?? []);
+        }
+
+        return response()->json([], 200);
+    }
 }

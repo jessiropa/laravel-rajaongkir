@@ -20,6 +20,9 @@ Route::get('/cities/{provinceId}',[App\Http\Controllers\RajaOngkirController::cl
 
 // get data kecamatan berdasarkan id kota
 Route::get('/districts/{cityId}', [App\Http\Controllers\RajaOngkirController::class, 'getDistricts']);
+
+// post data untuk check ongkir 
+Route::post('/check-ongkir', [App\Http\Controllers\RajaOngkirController::class, 'checkOngkir']);
 // Route::get('/', function () {
 //     return view('welcome');
 // });

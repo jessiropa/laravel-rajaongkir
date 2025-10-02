@@ -42,12 +42,94 @@
                     <option value="">-- Pilih Kecamatan --</option>
                 </select>
             </div>
+            <!-- berat barang -->
+            <div>
+                <label for="weight" class="block text-sm font-medium text-gray-700 mb-1">Berat Barang (gram)</label>
+                <input type="number" name="weight" id="weight" min="1000" placeholder="Masukkan berat barang dalam gram" class="mt-1 block w-full pl-3 pr-3 py-2 text-base bg-gray-200 border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md shadow">
+            </div>
+        </div>
+        <!-- Radio Box Kurir -->
+        <div class="mb-8">
+            <label class="block text-sm font-medium text-gray-700 mb-2">Pilih Kurir</label>
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                
+                <div class="flex items-center">
+                    <input type="radio" name="courier" id="courier-1" value="sicepat" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                    <label for="courier-1" class="ml-2 block text-sm text-gray-900">SICEPAT</label>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="radio" name="courier" id="courier-2" value="jnt" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                    <label for="courier-2" class="ml-2 block text-sm text-gray-900">J&T</label>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="radio" name="courier" id="courier-3" value="ninja" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                    <label for="courier-3" class="ml-2 block text-sm text-gray-900">Ninja Express</label>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="radio" name="courier" id="courier-4" value="jne" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                    <label for="courier-4" class="ml-2 block text-sm text-gray-900">JNE</label>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="radio" name="courier" id="courier-5" value="anteraja" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                    <label for="courier-5" class="ml-2 block text-sm text-gray-900">Anteraja</label>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="radio" name="courier" id="courier-6" value="pos" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                    <label for="courier-6" class="ml-2 block text-sm text-gray-900">POS Indonesia</label>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="radio" name="courier" id="courier-7" value="tiki" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                    <label for="courier-7" class="ml-2 block text-sm text-gray-900">Tiki</label>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="radio" name="courier" id="courier-8" value="wahana" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                    <label for="courier-8" class="ml-2 block text-sm text-gray-900">Wahana</label>
+                </div>
+
+                <div class="flex items-center">
+                    <input type="radio" name="courier" id="courier-9" value="lion" class="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300">
+                    <label for="courier-9" class="ml-2 block text-sm text-gray-900">Lion Parcel</label>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Hitung ongkir -->
+        <div class="flex justify-center mb-8 flex-col items-center">
+            <button class="btn-check w-full md:w-auto px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                Hitung Ongkos Kirim
+            </button>
+            <div class="loader mt-4" id="loading-indicator"></div>
+        </div>
+
+        <!-- Hasil Perhitungan Ongkos Kirim -->
+        <div class="mt-8 p-6 bg-indigo-50 border border-indigo-200 rounded-lg results-container hidden">
+            <h2 class="text-xl font-semibold text-indigo-800 mb-4 text-center">Hasil Perhitungan Ongkos Kirim</h2>
+            <div class="space-y-3" id="results-ongkir">
+            </div>
         </div>
     </div>
 </body>
 <script>
     $(document).ready(function(){
 
+        // Fungsi formatCurrency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            }).format(amount);
+        }
+        
         // inisialisasi dropdown kota / kabupaten
         $('select[name="province_id"]').on('change', function(){
             let provinceId = $(this).val();
@@ -88,6 +170,88 @@
             }else{
                 $('select[name="district_id"]').append(`<option value="">-- Pilih Kecamatan --</option>`);
             }
+        });
+
+        // ajax check ongkir 
+        let isProcessing = false;
+
+        $('.btn-check').click(function(e){
+            e.preventDefault();
+
+            if(isProcessing) return;
+
+            let token = $("meta[name='csrf-token']").attr("content");
+            let district_id = $('select[name=district_id]').val();
+            let courier = $('input[name=courier]:checked').val();
+            let weight = $('#weight').val();
+
+            // console.log(token, district_id, courier, weight);
+
+            // validasi form 
+            if(!district_id || !courier || !weight){
+                alert('Harap lengkap semua data terlebih dahulu!');
+                return;
+            }
+
+            isProcessing = true;
+
+            // tampilan loading indicator 
+            $('#loading-indicator').show();
+            $('.btn-check').prop('disabled', true);
+            $('.btn-check').text('Memproses...');
+
+            $.ajax({
+                url: "/check-ongkir",
+                type: "POST",
+                dataType: "JSON",
+                data: {
+                    _token: token,
+                    district_id: district_id,
+                    courier: courier,
+                    weight: weight,
+                },
+                beforeSend: function(){
+                    $('.results-container').addClass('hidden').removeClass('block');
+                },
+                success: function (response){
+                    if(response){
+                        $('#results-ongkir').empty();
+                        $('.results-container').removeClass('hidden').addClass('block');
+                        $.each(response, function (index, value){
+                            // $('#results-ongkir').append(`
+                            //     <div class="flex justify-between items-center p-3 bg-white rounded-xl shadow border border-gray-200">
+                            //         <span class="text-lg font-medium text-gray-800">${value.service} - ${value.description} - (${value.etd})</span>
+                            //         <span class="text-lg font-bold text-indigo-700">${formatCurrency(value.cost)}</span>
+                            //     </div>
+                            // `);
+                             const html = `
+                                <div class="flex justify-between items-center p-3 bg-white rounded-xl shadow border border-gray-200">
+                                    <span class="text-lg font-medium text-gray-800">
+                                        ${value.service} - ${value.description} - (${value.etd})
+                                    </span>
+                                    <span class="text-lg font-bold text-indigo-700">
+                                        ${formatCurrency(value.cost)}
+                                    </span>
+                                </div>
+                            `;
+                            
+                            $('#results-ongkir').append(html);
+                        });
+                    }
+                    
+                },
+                error:function(xhr,status,error){
+                    console.log("Gagal menghitung ongkir:", error);
+                    alert("Terjadi kesalahan saat menghitung ongkir. Coba lagi.");
+                },
+                complete:function(){
+                    $('#loading-indicator').hide();
+                    $('.btn-check').prop('disabled', false);
+                    $('.btn-check').text('Hitung Ongkos Kirim');
+
+                    isProcessing = false;
+                }
+            });
         });
     });
 </script>

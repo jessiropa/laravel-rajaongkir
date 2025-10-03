@@ -52,8 +52,8 @@ class RajaOngkirController extends Controller
     }
 
     // check ongkir 
-    public function checkongkir(Request $request){
-        $response = Http::withHeaders([
+    public function checkOngkir(Request $request){
+        $response = Http::asForm()->withHeaders([
             'Accept' => 'application/json',
             'key' => config('rajaongkir.api_key'),
         ])->post('https://rajaongkir.komerce.id/api/v1/calculate/district/domestic-cost', [
@@ -67,6 +67,6 @@ class RajaOngkirController extends Controller
             return response()->json($response->json()['data'] ?? []);
         }
 
-        return response()->json([], 200);
+        // return response()->json([], 200);
     }
 }
